@@ -1,0 +1,79 @@
+package com.lq;
+
+import java.awt.EventQueue;
+import java.sql.Connection;
+import java.sql.Driver;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+
+import javax.swing.JFrame;
+import javax.swing.JPanel;
+import javax.swing.UIManager;
+
+import com.llt.demo.PageTable;
+
+public class StringTest {
+
+	/**
+	 * @param args
+	 */
+	public static ResultSet getResultSet() {
+		String s ="select * from persons";
+		ResultSet re = null;
+		try{   
+		    //加载MySql的驱动类   
+		    Class.forName("com.mysql.jdbc.Driver") ;   
+		    }catch(ClassNotFoundException e){   
+		    System.out.println("找不到驱动程序类 ，加载驱动失败！");   
+		    e.printStackTrace() ;   
+		    }   
+		Connection con;
+		try {
+			con = DriverManager.getConnection("jdbc:mysql://localhost:3306/my_db","root","root");
+		
+		PreparedStatement ps = con.prepareStatement(s);
+		//
+		 re = ps.executeQuery();
+		
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return re;
+	}
+
+	public static void main(String[] args) {
+		try {
+			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+		} catch (Throwable e) {
+			e.printStackTrace();
+		}
+		EventQueue.invokeLater(new Runnable() {
+			public void run() {
+				try {
+					JFrame jframe = new JFrame();
+					// 标题
+					jframe.setTitle("表格的分页");
+					// 关闭
+					jframe.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+					// 大小及位置
+					jframe.setBounds(100, 100, 450, 300);
+					JPanel jpanel = new JPanel();
+					LPageList page = new LPageList();
+					LPageList page2 = new LPageList();
+					// 添加容器
+					Object[] header = new Object[] { "序号", "姓", "名", "年龄" };
+					jframe.setContentPane(jpanel);
+					jpanel.add(page.getContentPanel(5,StringTest.getResultSet(),header));
+					jpanel.add(page2.getContentPanel(5,StringTest.getResultSet(),header));
+					jframe.setVisible(true);
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+		});
+		
+	}
+}
