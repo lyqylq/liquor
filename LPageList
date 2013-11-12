@@ -1,0 +1,282 @@
+package com.lq;
+
+import java.awt.BorderLayout;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.Vector;
+
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+
+import javax.swing.border.EmptyBorder;
+import javax.swing.table.DefaultTableModel;
+import javax.swing.table.JTableHeader;
+
+public class LPageList {
+
+	private static final long serialVersionUID = 1698867170940729036L;
+
+	// 容器
+	private JPanel contentPane;
+	// 表格
+	private JTable table;
+	// 按钮首页
+	private JButton firstPageButton;
+	// 前一页
+	private JButton latePageButton;
+	// 下一页
+	private JButton nextPageButton;
+	// 末页
+	private JButton lastPageButton;
+	//
+	private int maxPageNumber;
+	private int currentPageNumber = 1;
+	private double pageSize = 5;
+	private DefaultTableModel defaultModel;
+	private ResultSet dataSet;
+	private Object[] headerText;
+	private JLabel label;
+
+	public JPanel getContentPanel(double pageSize, ResultSet dataSet,Object [] headerText) {
+		this.pageSize = pageSize;
+		this.dataSet = dataSet;
+
+		this.headerText = headerText;
+
+		// 容器
+		contentPane = new JPanel();
+		// 容器边框
+		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
+		// 容器布局
+		contentPane.setLayout(new BorderLayout(0, 0));
+
+		// 面板
+		JPanel panel = new JPanel();
+		// 添加面板
+		contentPane.add(panel, BorderLayout.SOUTH);
+		// 首页
+		firstPageButton = new JButton("首页");
+		// 为首页添加事件
+		firstPageButton.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				do_firstPageButton_actionPerformed(e);
+			}
+		});
+		label = new JLabel();
+		
+		panel.add(label);
+		// 首页字体
+		//firstPageButton.setFont(new Font("微软雅黑", Font.PLAIN, 14));
+		// 添加首页
+		panel.add(firstPageButton);
+		// 前一页
+		latePageButton = new JButton("前一页");
+		// 为前一页添加事件
+		latePageButton.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				do_latePageButton_actionPerformed(e);
+			}
+		});
+		// 前一页设置字体
+		//latePageButton.setFont(new Font("微软雅黑", Font.PLAIN, 14));
+		// 添加前一页
+		panel.add(latePageButton);
+		// 下一页
+		nextPageButton = new JButton("下一页");
+		// 为下一页添加事件
+		nextPageButton.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				do_nextPageButton_actionPerformed(e);
+			}
+		});
+		// 为下一页设置字体
+		//nextPageButton.setFont(new Font("微软雅黑", Font.PLAIN, 14));
+		// 添加下一页
+		panel.add(nextPageButton);
+		// 末页
+		lastPageButton = new JButton("末页");
+		// 末页事件
+		lastPageButton.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				do_lastPageButton_actionPerformed(e);
+			}
+		});
+		// 末页设置字体
+		//lastPageButton.setFont(new Font("微软雅黑", Font.PLAIN, 14));
+		// 添加末页
+		panel.add(lastPageButton);
+		// 滚动条
+		JScrollPane scrollPane = new JScrollPane();
+		// 添加滚动条
+		contentPane.add(scrollPane, BorderLayout.CENTER);
+		// 表格
+		table = new JTable();
+		init();
+		// 表格字体
+		//table.setFont(new Font("微软雅黑", Font.PLAIN, 14));
+		// 表格行高
+		table.setRowHeight(35);
+		// 表头
+		JTableHeader header = table.getTableHeader();
+		// 表头设置字体
+		//header.setFont(new Font("微软雅黑", Font.PLAIN, 16));
+		// 设置表头高度
+		header.setPreferredSize(new Dimension(header.getWidth(), 40));
+		// 表格添加滚动条
+		scrollPane.setViewportView(table);
+		return contentPane;
+	}
+
+	// 初始化
+	protected void init() {
+		// 表格模型
+		defaultModel = (DefaultTableModel) table.getModel();
+		//
+		defaultModel.setRowCount(0);
+		defaultModel.setColumnIdentifiers(headerText);
+		try {
+			while (dataSet.next()) {
+				defaultModel.addRow(new Object[] { dataSet.getInt(1),
+						dataSet.getString(2), dataSet.getString(3),
+						dataSet.getInt(4) });
+			}
+			dataSet.close();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		} 
+		maxPageNumber = (int) Math.ceil(defaultModel.getRowCount() / pageSize);
+		// 得到集合
+		Vector dataVector = defaultModel.getDataVector();
+		// 模型
+		DefaultTableModel newModel = new DefaultTableModel();
+
+		newModel.setColumnIdentifiers(headerText);
+		for (int i = 0; i < pageSize; i++) {
+			newModel.addRow((Vector) dataVector.elementAt(i));
+		}
+		table.setModel(newModel);
+		firstPageButton.setEnabled(false);
+		latePageButton.setEnabled(false);
+		nextPageButton.setEnabled(true);
+		lastPageButton.setEnabled(true);
+		changeLabel(label);
+	}
+
+	@SuppressWarnings("unchecked")
+	// 首页事件
+	protected void do_firstPageButton_actionPerformed(ActionEvent e) {
+		// 初始页
+		currentPageNumber = 1;
+		// 得到集合
+		Vector dataVector = defaultModel.getDataVector();
+		// 模型
+		DefaultTableModel newModel = new DefaultTableModel();
+
+		newModel.setColumnIdentifiers(headerText);
+		for (int i = 0; i < pageSize; i++) {
+			newModel.addRow((Vector) dataVector.elementAt(i));
+		}
+		table.setModel(newModel);
+		firstPageButton.setEnabled(false);
+		latePageButton.setEnabled(false);
+		nextPageButton.setEnabled(true);
+		lastPageButton.setEnabled(true);
+		changeLabel(label);
+	}
+
+	@SuppressWarnings("unchecked")
+	// 下一页事件
+	protected void do_latePageButton_actionPerformed(ActionEvent e) {
+		currentPageNumber--;
+		Vector dataVector = defaultModel.getDataVector();
+		DefaultTableModel newModel = new DefaultTableModel();
+		newModel.setColumnIdentifiers(headerText);
+		for (int i = 0; i < pageSize; i++) {
+			newModel.addRow((Vector) dataVector.elementAt((int) (pageSize
+					* (currentPageNumber - 1) + i)));
+		}
+		table.setModel(newModel);
+		if (currentPageNumber == 1) {
+			firstPageButton.setEnabled(false);
+			latePageButton.setEnabled(false);
+		}
+		nextPageButton.setEnabled(true);
+		lastPageButton.setEnabled(true);
+		changeLabel(label);
+	}
+
+	@SuppressWarnings("unchecked")
+	// 前一页
+	protected void do_nextPageButton_actionPerformed(ActionEvent e) {
+		currentPageNumber++;
+		Vector dataVector = defaultModel.getDataVector();
+		DefaultTableModel newModel = new DefaultTableModel();
+		newModel.setColumnIdentifiers(headerText);
+		if (currentPageNumber == maxPageNumber) {
+			int lastPageSize = (int) (defaultModel.getRowCount() - pageSize
+					* (maxPageNumber - 1));
+			for (int i = 0; i < lastPageSize; i++) {
+				newModel.addRow((Vector) dataVector.elementAt((int) (pageSize
+						* (maxPageNumber - 1) + i)));
+			}
+			nextPageButton.setEnabled(false);
+			lastPageButton.setEnabled(false);
+		} else {
+			for (int i = 0; i < pageSize; i++) {
+				newModel.addRow((Vector) dataVector.elementAt((int) (pageSize
+						* (currentPageNumber - 1) + i)));
+			}
+		}
+		table.setModel(newModel);
+		firstPageButton.setEnabled(true);
+		latePageButton.setEnabled(true);
+		changeLabel(label);
+	}
+
+	@SuppressWarnings("unchecked")
+	// 下一页
+	protected void do_lastPageButton_actionPerformed(ActionEvent e) {
+		currentPageNumber = maxPageNumber;
+		Vector dataVector = defaultModel.getDataVector();
+		DefaultTableModel newModel = new DefaultTableModel();
+		newModel.setColumnIdentifiers(headerText);
+		int lastPageSize = (int) (defaultModel.getRowCount() - pageSize
+				* (maxPageNumber - 1));
+
+		if (lastPageSize == 5) {
+			for (int i = 0; i < pageSize; i++) {
+				newModel.addRow((Vector) dataVector.elementAt((int) (pageSize
+						* (maxPageNumber - 1) + i)));
+			}
+		} else {
+			for (int i = 0; i < lastPageSize; i++) {
+				newModel.addRow((Vector) dataVector.elementAt((int) (pageSize
+						* (maxPageNumber - 1) + i)));
+			}
+		}
+
+		table.setModel(newModel);
+		firstPageButton.setEnabled(true);
+		latePageButton.setEnabled(true);
+		nextPageButton.setEnabled(false);
+		lastPageButton.setEnabled(false);
+		changeLabel(label);
+
+	}
+	
+	protected void changeLabel(JLabel label) {
+		String message = "第"+currentPageNumber+"页/共"+maxPageNumber+"页";
+		
+		label.setText(message);
+	}
+}
